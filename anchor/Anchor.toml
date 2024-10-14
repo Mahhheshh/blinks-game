@@ -6,6 +6,7 @@ skip-lint = false
 
 [programs.localnet]
 guessing_game = "Gp9DomzAFXA8uoyqSdFcBm6UMezq9mrUnmzgaFWFvwjC"
+rng_fight = "Fe4xbkhVRRCiJxPN2n9rZWJkfdiJj1D9mifGMWE36Ao8"
 
 [registry]
 url = "https://api.apr.dev"
