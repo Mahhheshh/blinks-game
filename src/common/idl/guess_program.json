@@ -1,0 +1,128 @@
+{
+  "address": "52FBC8SyRo1ZoE5vFY7qcu3EePgKeLRhquxcGeetUCL",
+  "metadata": {
+    "name": "guess_program",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "guess",
+      "discriminator": [
+        150,
+        196,
+        62,
+        128,
+        129,
+        236,
+        114,
+        40
+      ],
+      "accounts": [
+        {
+          "name": "pda_account",
+          "writable": true
+        },
+        {
+          "name": "guesser",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "guess_number",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "initializer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pda_account",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "challenge_id",
+          "type": "u64"
+        },
+        {
+          "name": "secret_number",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "GuessAccount",
+      "discriminator": [
+        235,
+        244,
+        125,
+        203,
+        130,
+        75,
+        18,
+        220
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "WinnerAlreadyDeclared",
+      "msg": "A winner has already been declared."
+    }
+  ],
+  "types": [
+    {
+      "name": "GuessAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "challenge_id",
+            "type": "u64"
+          },
+          {
+            "name": "secret_number",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "winner",
+            "type": {
+              "option": "pubkey"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
