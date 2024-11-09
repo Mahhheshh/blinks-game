@@ -39,11 +39,7 @@ export const GET = async (req: Request) => {
     /////////////////////////////////////
 
     const requestUrl = new URL(req.url);
-    const clusterurl = getRequestParam<CLUSTER_TYPES>(
-      requestUrl,
-      "clusterurl",
-      false,
-    );
+    const clusterurl = getRequestParam<CLUSTER_TYPES>(requestUrl, "clusterurl", false);
 
     const clusterOptions: ActionParameterSelectable<"radio">[] = clusterurl
       ? []
@@ -74,7 +70,7 @@ export const GET = async (req: Request) => {
     const actions: LinkedAction[] = [
       {
         type: "transaction",
-        label: "Create a ___________________", // TODO: edit text here
+        label: "Create a Snake Game", // TODO: edit text here
         href,
         parameters: [
           ...clusterOptions,
@@ -129,16 +125,16 @@ export const GET = async (req: Request) => {
         : new URL(req.url).origin;
 
     const icons = {
-      name: new URL("/name.png", basicUrl).toString(), // TODO: edit link here
+      name: new URL("/solana_devs.jpg", basicUrl).toString(), // TODO: edit link here
     };
 
     let payload: ActionGetResponse;
 
     payload = {
-      title: ``, // TODO: edit text here
+      title: `Create A Snake Game Challange`, // TODO: edit text here
       icon: icons.name,
       type: "action",
-      description: `- `, // TODO: edit text here
+      description: `- description`, // TODO: edit text here
       label: "Create",
       links: { actions },
     };
@@ -163,7 +159,7 @@ export const POST = async (req: Request) => {
     /////////////////////////////////////
 
     const requestUrl = new URL(req.url);
-    logger.info("POST request received for ___________________");
+    logger.info("POST request received for creating snake game...");
 
     // Validate and retrieve parameters with logging
     const clusterurl = getRequestParam<CLUSTER_TYPES>(
@@ -173,16 +169,16 @@ export const POST = async (req: Request) => {
       Object.values(CLUSTER_TYPES),
       CLUSTER_TYPES.DEVNET,
     );
-    const name = getRequestParam<string>(requestUrl, "name", true);
-    const token = getRequestParam<VERIFIED_CURRENCY>(
+    const name = getRequestParam<string>(requestUrl, "name", true); // Name of challange
+    const token = getRequestParam<VERIFIED_CURRENCY>( // Token To be used in challange
       requestUrl,
       "token",
       true,
       Object.values(VERIFIED_CURRENCY),
       VERIFIED_CURRENCY.SOL,
     );
-    const wager = getRequestParam<number>(requestUrl, "wager", true);
-    validateParameters("wager", wager > 0, "Wager must be greater than zero");
+    const wager = getRequestParam<number>(requestUrl, "wager", true); // weger amount to be placed
+    validateParameters("wager", wager > 0, "Wager must be greater than zero"); 
 
     const startTimeStr = getRequestParam<string>(requestUrl, "startTime", true);
     const durationStr = getRequestParam<string>(requestUrl, "duration", true);
@@ -234,7 +230,7 @@ export const POST = async (req: Request) => {
       feePayer: account, // User's wallet pays the fee
     }).add(...tx);
 
-    const href = `/api/actions/___________________/next-action?clusterurl=${clusterurl}&name=${name}&token=${token}&wager=${wager}&startDate=${startDate}&endDate=${endDate}`; // TODO: edit next action link here
+    const href = `/api/actions/create-challenge/next-action?clusterurl=${clusterurl}&name=${name}&token=${token}&wager=${wager}&startDate=${startDate}&endDate=${endDate}`; // TODO: edit next action link here
     logger.info(`Sending next action for create challenge blinks at: ${href}`);
 
     // Create response payload
@@ -242,7 +238,7 @@ export const POST = async (req: Request) => {
       fields: {
         type: "transaction",
         transaction,
-        message: "Create Catoff ___________________", // TODO: edit text here
+        message: "Create Catoff create-snake-game", // TODO: edit text here
         links: {
           next: {
             type: "post",
