@@ -13,7 +13,7 @@ const headers = createActionHeaders();
 
 const derivePDA = async (challengeId: number) => {
   const [pda] = await PublicKey.findProgramAddressSync(
-    [Buffer.from("guess"), new BN(challengeId).toArrayLike(Buffer, "le", 8)],
+    [Buffer.from("guess_challenge"), new BN(challengeId).toBuffer("le", 8), Buffer.alloc(7)],
     new PublicKey(idl.address),
   );
   return pda;
@@ -33,14 +33,14 @@ export const GET = async (req: Request) => {
           href: "/api/actions/create-guess-challange?secret-number={secret-number}&challenge-id={challenge-id}",
           parameters: [
             {
-              name: "secret-number",
-              label: "Enter Your Secret Number",
+              name: "challenge-id",
+              label: "Enter Challenge ID",
               required: true,
               type: "number",
             },
             {
-              name: "challenge-id",
-              label: "Enter Challenge ID",
+              name: "secret-number",
+              label: "Enter Your Secret Number",
               required: true,
               type: "number",
             },
@@ -61,9 +61,10 @@ export const POST = async (req: Request) => {
 
     const url = new URL(req.url);
     const secretNumberStr = url.searchParams.get("secret-number");
+    const challangeIdStr = url.searchParams.get("challenge-id");
     console.log("Secret number:", secretNumberStr);
 
-    if (!secretNumberStr || isNaN(Number(secretNumberStr))) {
+    if (!secretNumberStr || !challangeIdStr || isNaN(Number(secretNumberStr)) || isNaN(Number(challangeIdStr))) {
       console.error("Invalid secret number provided");
       return new Response(JSON.stringify({ error: "Invalid secret number provided" }), {
         status: 400,
@@ -91,10 +92,11 @@ export const POST = async (req: Request) => {
     const program = new Program(idl as GuessProgram, { connection });
     console.log("Program initialized");
 
-    const pdaAccount = await derivePDA(2);
+    const pdaAccount = await derivePDA(Number(challangeIdStr));
+    console.log("pda account", pdaAccount.toJSON());
 
     const instruction = await program.methods
-      .initialize(new BN(5), new BN(Number(secretNumberStr)))
+      .initialize(new BN(Number(challangeIdStr)), new BN(Number(secretNumberStr)))
       .accounts({
         initializer: userAccount,
         pdaAccount: pdaAccount,
@@ -120,7 +122,7 @@ export const POST = async (req: Request) => {
         links: {
           next: {
             type: "post",
-            href: "/api/actions/create-guess-challange/next?secret-number={secret-number}&challenge-id={challenge-id}",
+            href: `/api/actions/create-guess-challange/next?secret-number=${secretNumberStr}&challenge-id=${challangeIdStr}`,
           },
         },
       },
