@@ -7,7 +7,7 @@ import {
 import { clusterApiUrl, Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { BN, Program } from "@coral-xyz/anchor";
 import { GuessProgram } from "@/common/guess_program";
-const GuessProgramIDL = require("@/common/idl/guess_program.json");
+import GuessProgramIDL from "@/common/idl/guess_program.json";
 
 const headers = createActionHeaders();
 
@@ -85,15 +85,16 @@ export const POST = async (req: Request) => {
     const userAccount = new PublicKey(body.account);
     console.log("User account:", userAccount.toString());
 
-    const connection = new Connection(
-      process.env.SOLANA_RPC || clusterApiUrl("devnet"),
-      "confirmed",
-    );
+    const connection = new Connection("http://127.0.0.1:8899", "confirmed");
+    //  new Connection(
+    //   process.env.SOLANA_RPC || clusterApiUrl("devnet"),
+    //   "confirmed",
+    // );
 
-    const program = new Program<GuessProgram>(
-      GuessProgramIDL,
+    const program = new Program(
+      GuessProgramIDL as any,
       new PublicKey(GuessProgramIDL.address),
-      connection,
+      { connection },
     );
 
     const instruction = await program.methods
