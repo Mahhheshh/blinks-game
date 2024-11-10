@@ -53,7 +53,7 @@ export const initWeb3 = async (
     const provider = new AnchorProvider(connection, {} as any, {
       preflightCommitment: "processed",
     });
-    const program = new Program(idl as Idl, creds.progId, provider);
+    const program = new Program(idl as any, provider);
     logger.info(`[initWeb3] Initialized program with ID: ${creds.progId}`);
     return { program, connection };
   } catch (error) {
