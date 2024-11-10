@@ -30,7 +30,7 @@ export const GET = async (req: Request) => {
         {
           type: "transaction",
           label: "Create a Guess Challenge",
-          href: "/api/create-guess-challenge?secret-number={secret-number}&challenge-id={challenge-id}",
+          href: "/api/actions/create-guess-challange?secret-number={secret-number}&challenge-id={challenge-id}",
           parameters: [
             {
               name: "secret-number",
@@ -91,11 +91,9 @@ export const POST = async (req: Request) => {
     //   "confirmed",
     // );
 
-    const program = new Program(
-      GuessProgramIDL as any,
-      new PublicKey(GuessProgramIDL.address),
-      { connection },
-    );
+    const program = new Program(GuessProgramIDL as any, new PublicKey(GuessProgramIDL.address), {
+      connection,
+    });
 
     const instruction = await program.methods
       .initialize(new BN(1), new BN(Number(secretNumberStr)))
