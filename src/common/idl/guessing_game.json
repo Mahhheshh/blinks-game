@@ -1,0 +1,271 @@
+{
+  "address": "Gp9DomzAFXA8uoyqSdFcBm6UMezq9mrUnmzgaFWFvwjC",
+  "metadata": {
+    "name": "guessing_game",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "close",
+      "discriminator": [
+        98,
+        165,
+        201,
+        177,
+        108,
+        65,
+        206,
+        96
+      ],
+      "accounts": [
+        {
+          "name": "pda_account",
+          "writable": true
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "pda_account"
+          ]
+        },
+        {
+          "name": "receiver"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "guess",
+      "discriminator": [
+        150,
+        196,
+        62,
+        128,
+        129,
+        236,
+        114,
+        40
+      ],
+      "accounts": [
+        {
+          "name": "pda_account",
+          "writable": true
+        },
+        {
+          "name": "guesser",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "guess_number",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "initializer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  117,
+                  101,
+                  115,
+                  115,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "pda_account",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "secret_number",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_state",
+      "discriminator": [
+        190,
+        171,
+        224,
+        219,
+        217,
+        72,
+        199,
+        176
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  117,
+                  101,
+                  115,
+                  115,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "GuessAccount",
+      "discriminator": [
+        235,
+        244,
+        125,
+        203,
+        130,
+        75,
+        18,
+        220
+      ]
+    },
+    {
+      "name": "StateAccount",
+      "discriminator": [
+        142,
+        247,
+        54,
+        95,
+        85,
+        133,
+        249,
+        103
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "WinnerAlreadyDeclared",
+      "msg": "A winner has already been declared."
+    },
+    {
+      "code": 6001,
+      "name": "ChallengeIdOverflow",
+      "msg": "Challenge ID overflow"
+    },
+    {
+      "code": 6002,
+      "name": "AlreadyInitialized",
+      "msg": "The state has already been initialized."
+    }
+  ],
+  "types": [
+    {
+      "name": "GuessAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "challenge_id",
+            "type": "u64"
+          },
+          {
+            "name": "secret_number",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "winner",
+            "type": {
+              "option": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "StateAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "current_challenge_id",
+            "type": "u64"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "initialized",
+            "type": "bool"
+          }
+        ]
+      }
+    }
+  ]
+}
