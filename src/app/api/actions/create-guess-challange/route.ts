@@ -6,23 +6,16 @@ import {
 } from "@solana/actions";
 import { clusterApiUrl, Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { BN, Program } from "@coral-xyz/anchor";
-import { GuessProgram } from "@/common/guess_program";
-import idl from "@/common/idl/guess_program.json";
+import { GuessingGame } from "@/common/guessing_game";
+import idl from "@/common/idl/guessing_game.json";
+import { deriveChallangePda, getIconUrl } from "@/common/helper/guess.helper";
 
 const headers = createActionHeaders();
-
-const derivePDA = async (challengeId: number) => {
-  const [pda] = await PublicKey.findProgramAddressSync(
-    [Buffer.from("guess_challenge"), new BN(challengeId).toBuffer("le", 8), Buffer.alloc(7)],
-    new PublicKey(idl.address),
-  );
-  return pda;
-};
 
 export const GET = async (req: Request) => {
   const payload: ActionGetResponse = {
     title: "Create a Guess Challenge",
-    icon: new URL("/solana_devs.jpg", new URL(req.url).origin).toString(),
+    icon: await getIconUrl(),
     description: "Create a number guessing challenge. Others will try to guess your secret number!",
     label: "Create Guess Challenge",
     links: {
@@ -30,14 +23,8 @@ export const GET = async (req: Request) => {
         {
           type: "transaction",
           label: "Create a Guess Challenge",
-          href: "/api/actions/create-guess-challange?secret-number={secret-number}&challenge-id={challenge-id}",
+          href: "/api/actions/create-guess-challange?secret-number={secret-number}",
           parameters: [
-            {
-              name: "challenge-id",
-              label: "Enter Challenge ID",
-              required: true,
-              type: "number",
-            },
             {
               name: "secret-number",
               label: "Enter Your Secret Number",
@@ -61,10 +48,9 @@ export const POST = async (req: Request) => {
 
     const url = new URL(req.url);
     const secretNumberStr = url.searchParams.get("secret-number");
-    const challangeIdStr = url.searchParams.get("challenge-id");
     console.log("Secret number:", secretNumberStr);
 
-    if (!secretNumberStr || !challangeIdStr || isNaN(Number(secretNumberStr)) || isNaN(Number(challangeIdStr))) {
+    if (!secretNumberStr || isNaN(Number(secretNumberStr))) {
       console.error("Invalid secret number provided");
       return new Response(JSON.stringify({ error: "Invalid secret number provided" }), {
         status: 400,
@@ -89,14 +75,14 @@ export const POST = async (req: Request) => {
     const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
     console.log("Connection established");
 
-    const program = new Program(idl as GuessProgram, { connection });
+    const program = new Program(idl as GuessingGame, { connection });
     console.log("Program initialized");
 
-    const pdaAccount = await derivePDA(Number(challangeIdStr));
+    const { stateAccount, pdaAccount } = await deriveChallangePda(program);
     console.log("pda account", pdaAccount.toJSON());
 
     const instruction = await program.methods
-      .initialize(new BN(Number(challangeIdStr)), new BN(Number(secretNumberStr)))
+      .initialize(new BN(Number(secretNumberStr)))
       .accounts({
         initializer: userAccount,
         pdaAccount: pdaAccount,
@@ -122,7 +108,7 @@ export const POST = async (req: Request) => {
         links: {
           next: {
             type: "post",
-            href: `/api/actions/create-guess-challange/next?secret-number=${secretNumberStr}&challenge-id=${challangeIdStr}`,
+            href: `/api/actions/create-guess-challange/next?secret-number=${secretNumberStr}&challenge-id=${stateAccount.currentChallengeId}`,
           },
         },
       },

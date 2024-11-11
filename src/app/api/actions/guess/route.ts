@@ -1,13 +1,13 @@
-import { derivePDA, initGuessProgram } from "@/common/helper/guess.helper";
+import { deriveGuessPdaById, getIconUrl, initGuessingGame } from "@/common/helper/guess.helper";
 import { BN } from "@coral-xyz/anchor";
 import {
-  ActionGetRequest,
   ActionGetResponse,
   ActionPostRequest,
   CompletedAction,
   createActionHeaders,
   createPostResponse,
   NextAction,
+  NextActionLink,
 } from "@solana/actions";
 import { PublicKey, Transaction } from "@solana/web3.js";
 
@@ -41,9 +41,28 @@ const createGuessAction = async (origin: string, challangeId: string): Promise<N
 
 export const GET = async (req: Request) => {
   const challangeId = new URL(req.url).searchParams.get("challenge-id");
-  console.log(challangeId);
+
+  const { program } = await initGuessingGame();
+  const { pdaAccount } = await deriveGuessPdaById(challangeId!); // TODO: fix dis
+
+  const account = await program.account.guessAccount.fetch(pdaAccount);
+
+  if (account.winner) {
+    const payload: CompletedAction = {
+      type: "completed",
+      title: `winner of this challange is: ${account.winner}`,
+      description: "thank you for playing everyone",
+      icon: await getIconUrl(),
+      label: "Winner Announced",
+    };
+    return Response.json(payload, {
+      status: 200,
+      headers,
+    });
+  }
+
   const payload: ActionGetResponse = {
-    icon: new URL("/solana_devs.jpg", new URL(req.url).origin).toString(),
+    icon: await getIconUrl(),
     title: "Guess The Number",
     description: "Guess the Number set by your friend",
     label: "Guess",
@@ -110,27 +129,14 @@ export const POST = async (req: Request) => {
       });
     }
 
-    const { program, connection } = await initGuessProgram();
+    const { program, connection } = await initGuessingGame();
     console.log("Initialized Guess Program");
 
-    const pdaAccount = await derivePDA(Number(challangeId));
+    const { pdaAccount } = await deriveGuessPdaById(challangeId);
     console.log("pda Account init", pdaAccount);
 
     const dataAccount = await program.account.guessAccount.fetch(pdaAccount);
-    if (dataAccount.winner) {
-      console.log("winner alredy exists");
-      const payload: CompletedAction = {
-        type: "completed",
-        title: `winner of this challange is: ${dataAccount.winner}`,
-        description: "thank you for playing everyone",
-        icon: new URL("/solana_devs.jpg", baseUrl.origin).toString(),
-        label: "Winner Announced",
-      };
-      return Response.json(payload, {
-        status: 200,
-        headers,
-      });
-    }
+
     const instruction = await program.methods
       .guess(new BN(guess))
       .accounts({
@@ -150,38 +156,50 @@ export const POST = async (req: Request) => {
     }).add(instruction);
     console.log("Created transaction");
 
+    let nextActionPayload: NextActionLink;
+    if (new BN(guess).eq(dataAccount.secretNumber)) {
+      console.log("Correct guess");
+      nextActionPayload = {
+        type: "post",
+        href: `/api/actions/guess/end`,
+      };
+    } else {
+      console.log("Incorrect guess");
+      nextActionPayload = {
+        type: "inline",
+        action: {
+          type: "action",
+          icon: await getIconUrl(),
+          title: "Guess The Number",
+          description: "Guess the Number set by your friend",
+          label: "Guess",
+          links: {
+            actions: [
+              {
+                type: "transaction",
+                href: `/api/actions/guess?challange-id=${challangeId}&guess={guess}`,
+                label: `Guess`,
+                parameters: [
+                  {
+                    name: "guess",
+                    label: "Enter Your Guess",
+                    type: "number",
+                    required: true,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      };
+    }
+
     const payload = await createPostResponse({
       fields: {
         type: "transaction",
         transaction: transaction,
         links: {
-          next: {
-            type: "inline",
-            action: {
-              type: "action",
-              icon: new URL("/solana_devs.jpg", new URL(req.url).origin).toString(),
-              title: "Guess The Number",
-              description: "Guess the Number set by your friend",
-              label: "Guess",
-              links: {
-                actions: [
-                  {
-                    type: "transaction",
-                    href: `/api/actions/guess?challange-id=${challangeId}&guess={guess}`,
-                    label: `Guess`,
-                    parameters: [
-                      {
-                        name: "guess",
-                        label: "Enter Your Guess",
-                        type: "number",
-                        required: true,
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          },
+          next: nextActionPayload,
         },
       },
     });

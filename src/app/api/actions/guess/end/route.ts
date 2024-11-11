@@ -14,20 +14,12 @@ export const OPTIONS = async () => Response.json(null, { headers });
 
 export const POST = async (req: Request) => {
   const baseUrl = new URL(req.url);
-
-  const challengeId = baseUrl.searchParams.get("challenge-id");
-  const href = new URL(
-    `/api/actions/guess?challenge-id=${challengeId}&cluster=devnet`,
-    process.env.ENV === "prod"
-      ? "https://blinks-game.onrender.com/api/actions/create-guess-challange"
-      : "http://localhost:3000",
-  ).toString();
-  const description = `Visit https://dial.to/?action=solana-action:${href} to participate in the challenge!`;
+  const description = `Congratulations! The winner is: 6TQyCGxqAy1gdRAy7wGzZZLatP1hpDZNyHCtc4ZxEcwR. `;
   const payload: CompletedAction = {
     type: "completed",
-    title: "Guess Challenge Created Successfully!",
+    title: "The Number has been guessed!",
     icon: await getIconUrl(),
-    label: "Challenge Created",
+    label: "Challenge Ended!",
     description: description,
   };
 
