@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-anchor = "52FBC8SyRo1ZoE5vFY7qcu3EePgKeLRhquxcGeetUCL"
+guessing-game = "7Dn7epAr8GzQb7pXtFGCZEygzJBbieBxqxuiWdTeGtbG"
 
 [registry]
 url = "https://api.apr.dev"
