@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("7Dn7epAr8GzQb7pXtFGCZEygzJBbieBxqxuiWdTeGtbG");
+declare_id!("Gp9DomzAFXA8uoyqSdFcBm6UMezq9mrUnmzgaFWFvwjC");
 
 const DISCRIMINATOR_SIZE: usize = 8;
 
@@ -10,9 +10,16 @@ pub mod guessing_game {
 
     pub fn initialize_state(ctx: Context<InitializeState>) -> Result<()> {
         let state = &mut ctx.accounts.state;
-        state.current_challenge_id = 0;
+        
+        if state.initialized {
+            return Err(ErrorCode::AlreadyInitialized.into());
+        }
+
+        state.current_challenge_id = 1;
         state.authority = ctx.accounts.authority.key();
+        state.initialized = true; 
         msg!("Global state initialized");
+
         Ok(())
     }
 
@@ -20,13 +27,13 @@ pub mod guessing_game {
         let state = &mut ctx.accounts.state;
         let pda_account = &mut ctx.accounts.pda_account;
         
-        state.current_challenge_id = state.current_challenge_id.checked_add(1)
-            .ok_or(ErrorCode::ChallengeIdOverflow)?;
-        
         pda_account.challenge_id = state.current_challenge_id;
         pda_account.secret_number = secret_number;
         pda_account.owner = *ctx.accounts.initializer.key;
         pda_account.winner = None;
+
+        state.current_challenge_id = state.current_challenge_id.checked_add(1)
+            .ok_or(ErrorCode::ChallengeIdOverflow)?;
 
         msg!("PDA initialized with challenge ID: {:?}", state.current_challenge_id);
         Ok(())
@@ -87,7 +94,7 @@ pub struct Initialize<'info> {
         payer = initializer,
         seeds = [
             b"guess_challenge",
-            &(state.current_challenge_id.checked_add(1).unwrap()).to_le_bytes()[..],
+            &state.current_challenge_id.to_le_bytes()[..],
             &[0; 7]
         ],
         bump,
@@ -125,8 +132,8 @@ pub struct Close<'info> {
     )]
     pub pda_account: Account<'info, GuessAccount>,
     #[account(mut)]
-    pub receiver: SystemAccount<'info>,
     pub owner: Signer<'info>,
+    pub receiver: SystemAccount<'info>,
 }
 
 #[account]
@@ -134,6 +141,7 @@ pub struct Close<'info> {
 pub struct StateAccount {
     pub current_challenge_id: u64,
     pub authority: Pubkey,
+    pub initialized: bool
 }
 
 #[account]
@@ -151,4 +159,6 @@ pub enum ErrorCode {
     WinnerAlreadyDeclared,
     #[msg("Challenge ID overflow")]
     ChallengeIdOverflow,
+    #[msg("The state has already been initialized.")]
+    AlreadyInitialized,
 }

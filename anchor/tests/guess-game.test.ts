@@ -43,14 +43,18 @@ describe("guess_game test", () => {
     await program.methods
       .initializeState()
       .accounts({
-        state: stateAccount,
         authority: authority.publicKey,
       })
       .signers([authority])
       .rpc();
 
+    const stateAccountState = await program.account.stateAccount.fetch(stateAccount);
     const [gamePda] = PublicKey.findProgramAddressSync(
-      [Buffer.from("guess_challenge"), new anchor.BN(1).toBuffer("le", 8), Buffer.alloc(7)],
+      [
+        Buffer.from("guess_challenge"),
+        stateAccountState.currentChallengeId.toBuffer("le", 8),
+        Buffer.alloc(7),
+      ],
       program.programId,
     );
     pdaAccount = gamePda;
@@ -65,7 +69,6 @@ describe("guess_game test", () => {
     await program.methods
       .initialize(secretNumber)
       .accounts({
-        state: stateAccount,
         initializer: initializer.publicKey,
         pdaAccount: pdaAccount,
       })
@@ -75,7 +78,7 @@ describe("guess_game test", () => {
 
   it("should initialize the state account", async () => {
     const stateAccountState = await program.account.stateAccount.fetch(stateAccount);
-    assert.equal(stateAccountState.currentChallengeId.toString(), "1");
+    assert.equal(stateAccountState.currentChallengeId.toString(), "2");
     assert.equal(stateAccountState.authority.toBase58(), authority.publicKey.toBase58());
   });
 
@@ -97,7 +100,6 @@ describe("guess_game test", () => {
     await program.methods
       .initialize(new anchor.BN(100))
       .accounts({
-        state: stateAccount,
         initializer: initializer.publicKey,
         pdaAccount: secondGamePda,
       })
@@ -108,7 +110,7 @@ describe("guess_game test", () => {
     assert.equal(secondGameState.challengeId.toString(), "2");
 
     const stateAccountState = await program.account.stateAccount.fetch(stateAccount);
-    assert.equal(stateAccountState.currentChallengeId.toString(), "2");
+    assert.equal(stateAccountState.currentChallengeId.toString(), "3");
   });
 
   it("should not accept incorrect guesses", async () => {
