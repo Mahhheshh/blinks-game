@@ -1,0 +1,328 @@
+{
+  "address": "Fe4xbkhVRRCiJxPN2n9rZWJkfdiJj1D9mifGMWE36Ao8",
+  "metadata": {
+    "name": "rng_fight",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "accept_challenge",
+      "discriminator": [
+        195,
+        227,
+        139,
+        241,
+        55,
+        193,
+        153,
+        105
+      ],
+      "accounts": [
+        {
+          "name": "defender",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "challenge_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  108,
+                  108,
+                  101,
+                  110,
+                  103,
+                  101,
+                  115
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "challenge_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "attack",
+      "discriminator": [
+        197,
+        26,
+        63,
+        242,
+        77,
+        247,
+        101,
+        119
+      ],
+      "accounts": [
+        {
+          "name": "attacker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "challenge_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  108,
+                  108,
+                  101,
+                  110,
+                  103,
+                  101,
+                  115
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "challenge_id",
+          "type": "u64"
+        },
+        {
+          "name": "damage",
+          "type": "i8"
+        }
+      ]
+    },
+    {
+      "name": "create_challenge",
+      "discriminator": [
+        170,
+        244,
+        47,
+        1,
+        1,
+        15,
+        173,
+        239
+      ],
+      "accounts": [
+        {
+          "name": "challenger",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "challenge_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  108,
+                  108,
+                  101,
+                  110,
+                  103,
+                  101,
+                  115
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "challenge_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_game_account",
+      "discriminator": [
+        27,
+        63,
+        89,
+        12,
+        212,
+        206,
+        254,
+        42
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "challenge_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  108,
+                  108,
+                  101,
+                  110,
+                  103,
+                  101,
+                  115
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ChallengeAccount",
+      "discriminator": [
+        96,
+        128,
+        44,
+        165,
+        71,
+        172,
+        60,
+        12
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "ChallengeNotFound",
+      "msg": "Challenge Not Found!"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidAction",
+      "msg": "Invalid Action!"
+    },
+    {
+      "code": 6002,
+      "name": "NotYourTurn",
+      "msg": "Not Your Turn!"
+    }
+  ],
+  "types": [
+    {
+      "name": "Challenge",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "challenge_id",
+            "type": "u64"
+          },
+          {
+            "name": "challenger",
+            "type": "pubkey"
+          },
+          {
+            "name": "defender",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "challenger_health",
+            "type": "u8"
+          },
+          {
+            "name": "defender_health",
+            "type": "u8"
+          },
+          {
+            "name": "current_turn",
+            "type": "pubkey"
+          },
+          {
+            "name": "state",
+            "type": {
+              "defined": {
+                "name": "State"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ChallengeAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "challenges",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Challenge"
+                }
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "State",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "InvitationSent"
+          },
+          {
+            "name": "Started"
+          },
+          {
+            "name": "Ended"
+          },
+          {
+            "name": "Going"
+          }
+        ]
+      }
+    }
+  ]
+}
