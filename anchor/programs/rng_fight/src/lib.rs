@@ -22,6 +22,8 @@ pub mod rng_fight {
             defender_health: 100,
             current_turn: challenger.key(),
             state: State::InvitationSent,
+            challenger_last_choice: Action::None,
+            defender_last_choice: Action::None
         };
     
         challenge_account.challenges.push(challenge);
@@ -38,6 +40,9 @@ pub mod rng_fight {
             .iter_mut()
             .find(|ch| ch.challenge_id == challenge_id)
         {
+            if challenge.challenger == defender.key() {
+                return Err(ErrorCodes::InvalidAction.into());
+            }
             challenge.defender = Some(defender.key());
             challenge.state = State::Started;
             Ok(())
@@ -58,26 +63,39 @@ pub mod rng_fight {
             if challenge.current_turn != attacker.key() {
                 return Err(ErrorCodes::NotYourTurn.into());
             }
-    
+        
             if damage > 0 {
-                challenge.defender_health = challenge.defender_health.saturating_sub(damage as u8);
-                if challenge.defender_health == 0 {
-                    challenge.state = State::Ended;
+                if challenge.current_turn == challenge.challenger {
+                    if challenge.defender_last_choice != Action::Defend {
+                        challenge.defender_health = challenge.defender_health.saturating_sub(damage as u8);
+                    }
+                } else {
+                    if challenge.challenger_last_choice != Action::Defend {
+                        challenge.challenger_health = challenge.challenger_health.saturating_sub(damage as u8);
+                    }
                 }
             } else {
                 if challenge.current_turn == challenge.challenger {
-                    challenge.challenger_health = challenge.challenger_health.saturating_sub((-damage) as u8);
+                    if challenge.challenger_last_choice != Action::Defend {
+                        challenge.challenger_health = challenge.challenger_health.saturating_sub((-damage) as u8);
+                    }
                 } else {
-                    challenge.defender_health = challenge.defender_health.saturating_sub((-damage) as u8);
+                    if challenge.defender_last_choice != Action::Defend {
+                        challenge.defender_health = challenge.defender_health.saturating_sub((-damage) as u8);
+                    }
                 }
             }
-    
-            challenge.current_turn = if challenge.current_turn == challenge.challenger {
-                challenge.defender.unwrap_or(challenge.challenger)
+        
+            if challenge.challenger_health == 0 || challenge.defender_health == 0 {
+                challenge.state = State::Ended;
             } else {
-                challenge.challenger
-            };
-    
+                challenge.current_turn = if challenge.current_turn == challenge.challenger {
+                    challenge.defender.unwrap_or(challenge.challenger)
+                } else {
+                    challenge.challenger
+                };
+            }
+        
             Ok(())
         } else {
             Err(ErrorCodes::ChallengeNotFound.into())
@@ -150,7 +168,18 @@ pub struct Challenge {
     pub challenger_health: u8,
     pub defender_health: u8,
     pub current_turn: Pubkey,
+    pub challenger_last_choice: Action,
+    pub defender_last_choice: Action,
     pub state: State,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq)]
+#[derive(InitSpace)]
+pub enum Action {
+    Kick,
+    Punch,
+    Defend,
+    None,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
