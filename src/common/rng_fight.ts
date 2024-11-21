@@ -247,6 +247,26 @@ export type RngFight = {
   ],
   "types": [
     {
+      "name": "action",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "kick"
+          },
+          {
+            "name": "punch"
+          },
+          {
+            "name": "defend"
+          },
+          {
+            "name": "none"
+          }
+        ]
+      }
+    },
+    {
       "name": "challenge",
       "type": {
         "kind": "struct",
@@ -276,6 +296,22 @@ export type RngFight = {
           {
             "name": "currentTurn",
             "type": "pubkey"
+          },
+          {
+            "name": "challengerLastChoice",
+            "type": {
+              "defined": {
+                "name": "action"
+              }
+            }
+          },
+          {
+            "name": "defenderLastChoice",
+            "type": {
+              "defined": {
+                "name": "action"
+              }
+            }
           },
           {
             "name": "state",
